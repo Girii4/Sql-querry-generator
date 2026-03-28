@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>SQL Query Generator</h1>
+    <form id="queryForm">
+        <label for="englishQuery">Enter your English query:</label><br>
+        <input type="text" id="englishQuery" name="englishQuery" required><br><br>
+        <input type="submit" value="Generate SQL">
+    </form>
+    <h2>Generated SQL:</h2>
+    <pre id="sqlOutput"></pre>
+
+    <script>
+        document.getElementById('queryForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const englishQuery = document.getElementById('englishQuery').value;
+            // Placeholder for SQL generation logic
+            let sqlOutput = `SELECT * FROM table WHERE column = 'example';`; // Example SQL
+            document.getElementById('sqlOutput').textContent = sqlOutput;
+        });
+    </script>
+</body>
+</html>
