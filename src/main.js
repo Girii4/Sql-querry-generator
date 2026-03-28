@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const nlpParser = require('./nlpParser');
-const queryGenerator = require('./queryGenerator');
+const { parseQuery } = require('./nlpParser');
+const { generateSQL } = require('./queryGenerator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,10 +25,10 @@ app.post('/generate-query', (req, res) => {
     }
 
     // Parse the English query
-    const parsedQuery = nlpParser.parseQuery(query);
+    const parsedQuery = parseQuery(query);
 
     // Generate SQL
-    const sqlQuery = queryGenerator.generateSQL(parsedQuery);
+    const sqlQuery = generateSQL(parsedQuery);
 
     res.json({
       success: true,
