@@ -45,3 +45,10 @@ cp .env.example .env
 Run the startup script:
 
 npm start
+
+
+
+
+
+
+<img width="1919" height="980" alt="image" src="https://github.com/user-attachments/assets/17b6a32e-55be-4f8e-92a3-36631e0f6a15" />
