@@ -3,31 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQL Query Generator</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #333; }
-        form { margin-bottom: 20px; }
-    </style>
+    <title>SQL Query Generator - AI-Powered SQL Code & Table Simulation</title>
+    <meta name="description" content="Generate high-quality, schema-aware SQL queries in PostgreSQL, MySQL, SQLite, and more. Visualize query steps and view simulated mock table outputs instantly.">
+    <link rel="stylesheet" href="index.css">
+    <!-- In-Memory SQL Engine & CSV Parser CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/alasql@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5"></script>
 </head>
 <body>
-    <h1>SQL Query Generator</h1>
-    <form id="queryForm">
-        <label for="englishQuery">Enter your English query:</label><br>
-        <input type="text" id="englishQuery" name="englishQuery" required><br><br>
-        <input type="submit" value="Generate SQL">
-    </form>
-    <h2>Generated SQL:</h2>
-    <pre id="sqlOutput"></pre>
+    <div class="app-container">
+        <!-- Premium Header -->
+        <header>
+            <div class="logo-section">
+                <h1>
+                    <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    SQLQuery.AI
+                </h1>
+                <p>Create accurate, dialect-optimized SQL from natural language descriptions</p>
+            </div>
+            
+            <div class="api-key-container">
+                <span id="keyBadge" class="key-badge missing">
+                    <span class="key-dot"></span>No Key
+                </span>
+                <div class="api-key-input-wrapper">
+                    <input type="password" id="apiKeyInput" class="api-key-input" placeholder="Enter Gemini API Key...">
+                    <button id="btnSaveKey" class="btn-icon" title="Save API Key">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-    <script>
-        document.getElementById('queryForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const englishQuery = document.getElementById('englishQuery').value;
-            // Placeholder for SQL generation logic
-            let sqlOutput = `SELECT * FROM table WHERE column = 'example';`; // Example SQL
-            document.getElementById('sqlOutput').textContent = sqlOutput;
-        });
-    </script>
+        <!-- Main Workspace -->
+        <main class="main-grid">
+            <!-- Sidebar: Schema Designer -->
+            <aside class="panel" id="schemaPanel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                                <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path>
+                            </svg>
+                            Schema Designer
+                        </h2>
+                        <span class="panel-subtitle">Define tables to make query generation schema-aware</span>
+                    </div>
+                </div>
+
+                <!-- Template Loader -->
+                <div class="schema-templates">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Load Preset Template</span>
+                    <div class="template-grid">
+                        <button class="btn-template" data-template="ecommerce" id="tplEcommerce">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            E-Commerce
+                        </button>
+                        <button class="btn-template" data-template="saas" id="tplSaas">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                                <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                            </svg>
+                            SaaS Analytics
+                        </button>
+                        <button class="btn-template" data-template="blog" id="tplBlog">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            Blog CMS
+                        </button>
+                        <button class="btn-template" data-template="university" id="tplUniversity">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+                            </svg>
+                            University
+                        </button>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 0.25rem 0;">
+
+                <!-- Datasets Manager -->
+                <div class="datasets-manager" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block;">Custom Database Datasets</span>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <!-- File Upload Input Zone -->
+                        <div id="uploadZone" style="position: relative; border: 1px dashed var(--panel-border); padding: 0.75rem; border-radius: var(--radius-md); text-align: center; background: rgba(0,0,0,0.15); cursor: pointer; transition: var(--transition-fast); overflow: hidden;">
+                            <span id="uploadZoneText" style="font-size: 0.8rem; color: var(--text-secondary); display: block; pointer-events: none;">Drag & Drop or Click to Upload CSV</span>
+                            <input type="file" id="csvFileInput" accept=".csv" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                        </div>
+                        
+                        <!-- JSON Paste Button -->
+                        <button id="btnPasteJson" class="btn-add-table" style="padding: 0.5rem; font-size: 0.8rem; border-style: dashed; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                            </svg>
+                            Paste JSON Table Array
+                        </button>
+                    </div>
+                    
+                    <!-- Loaded Datasets List -->
+                    <div id="loadedDatasetsList" style="display: flex; flex-direction: column; gap: 0.45rem;">
+                        <!-- List loaded dynamically -->
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 0.25rem 0;">
+
+                <!-- Visual Schema Builder -->
+                <div class="schema-builder">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Visual Database Tables</span>
+                    <div class="table-list" id="tableList">
+                        <!-- Loaded dynamically -->
+                    </div>
+                    <button class="btn-add-table" id="btnAddTable">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Custom Table
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Panel: Inputs & Output -->
+            <section class="generator-workspace">
+                <!-- Dialect & Model Selector -->
+                <div class="dialect-selector-group" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <span class="dialect-label">Target Database Dialect:</span>
+                        <div class="dialect-options">
+                            <button class="dialect-btn active" data-dialect="PostgreSQL" id="dialectPostgres">PostgreSQL</button>
+                            <button class="dialect-btn" data-dialect="MySQL" id="dialectMysql">MySQL</button>
+                            <button class="dialect-btn" data-dialect="SQLite" id="dialectSqlite">SQLite</button>
+                            <button class="dialect-btn" data-dialect="SQL Server" id="dialectMssql">MS SQL</button>
+                            <button class="dialect-btn" data-dialect="Oracle" id="dialectOracle">Oracle</button>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span class="dialect-label">AI Model:</span>
+                        <select id="modelSelector" style="background: rgba(255,255,255,0.03); border: 1px solid var(--panel-border); color: var(--text-primary); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-family: var(--font-heading); cursor: pointer; width: auto; font-weight: 500; outline: none; transition: var(--transition-fast);">
+                            <option value="gemini-2.0-flash" style="background: var(--bg-main);">gemini-2.0-flash (Default)</option>
+                            <option value="gemini-2.5-flash" style="background: var(--bg-main);">gemini-2.5-flash</option>
+                            <option value="gemini-1.5-pro" style="background: var(--bg-main);">gemini-1.5-pro</option>
+                            <option value="gemini-1.5-flash" style="background: var(--bg-main);">gemini-1.5-flash</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Input prompt card -->
+                <div class="panel prompter-box">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            Explain your query request
+                        </h2>
+                    </div>
+                    
+                    <textarea id="englishPrompt" class="prompt-textarea" placeholder="Describe the query you want in plain English (e.g. Find all products that are out of stock and order them by price descending...)"></textarea>
+                    
+                    <div class="prompt-footer">
+                        <div class="ideas-list">
+                            <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center; margin-right: 0.25rem;">Try these:</span>
+                            <span class="idea-chip" id="chip1">Top 5 spending customers last month</span>
+                            <span class="idea-chip" id="chip2">Total revenue per product category</span>
+                            <span class="idea-chip" id="chip3">Average orders per active tenant</span>
+                        </div>
+                        <button id="btnGenerate" class="btn-generate">
+                            <span class="btn-text">Generate Query</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty State Placeholder -->
+                <div class="placeholder-state" id="outputPlaceholder">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <h3>Your Generated SQL Playground</h3>
+                    <p>Enter your SQL requirements and click generate. Your query, layout logic, and simulated results table will render here.</p>
+                </div>
+
+                <!-- Generation Outputs (shown dynamically) -->
+                <div class="output-showcase" id="outputShowcase">
+                    <!-- SQL Code Output Panel -->
+                    <div class="sql-panel">
+                        <div class="sql-header">
+                            <span class="sql-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="16 18 22 12 16 6"></polyline>
+                                    <polyline points="8 6 2 12 8 18"></polyline>
+                                </svg>
+                                Generated SQL Query
+                            </span>
+                            <div class="sql-actions">
+                                <button id="btnCopySql" class="btn-sql-action" title="Copy SQL">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    Copy Code
+                                </button>
+                            </div>
+                        </div>
+                        <div class="sql-code-container">
+                            <pre><code id="sqlCode" class="sql-code">SELECT * FROM orders;</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Explanations & Meta Info panel -->
+                    <div class="panel explanation-panel">
+                        <div class="panel-header">
+                            <h3 class="explanation-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                                    <line x1="4" y1="22" x2="4" y2="15"></line>
+                                </svg>
+                                Technical Breakdown
+                            </h3>
+                            <div class="tables-used-container">
+                                <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Tables Used:</span>
+                                <div id="tablesUsedBadges" class="tables-used-container">
+                                    <!-- Badges load here -->
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="explanation-list" id="explanationList">
+                            <!-- Bullet points load here -->
+                        </ul>
+                    </div>
+
+                    <!-- Simulated Live Data Panel -->
+                    <div class="panel mock-preview-panel">
+                        <div class="panel-header">
+                            <h3 class="explanation-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22c5.523 0 10-2.239 10-5s-4.477-5-10-5-10 2.239-10 5 4.477 5 10 5z"></path>
+                                    <path d="M12 12c5.523 0 10-2.239 10-5s-4.477-5-10-5-10 2.239-10 5 4.477 5 10 5z"></path>
+                                    <path d="M12 17c5.523 0 10-2.239 10-5s-4.477-5-10-5-10 2.239-10 5 4.477 5 10 5z"></path>
+                                </svg>
+                                Simulated Database Results Preview
+                            </h3>
+                            <span id="executionStatusBadge" class="panel-subtitle" style="font-size: 0.8rem; color: var(--success); font-weight: 500; display: flex; align-items: center; gap: 0.25rem;">
+                                <span class="key-dot" style="background-color: var(--success); box-shadow: 0 0 8px var(--success);"></span>
+                                Live Simulation Active
+                            </span>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="mock-table">
+                                <thead>
+                                    <tr id="tableHeaders">
+                                        <!-- Header row keys -->
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast elements -->
+    <div id="toast" class="toast">SQL Query generated successfully!</div>
+
+    <!-- App scripts -->
+    <script src="src/app.js"></script>
 </body>
 </html>
