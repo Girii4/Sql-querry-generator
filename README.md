@@ -25,30 +25,27 @@ Translate your plain English questions into highly optimized, dialect-specific S
 ```bash
 git clone https://github.com/Girii4/Sql-querry-generator.git
 cd Sql-querry-generator
-
+```
 
 
 **2. Install Dependencies**
-
+```bash
 npm install
-
+```
 
 **3. Setup Your API Credentials**
 Create a .env file in the root directory (you can rename the provided .env.example file):
-
+```bash
 cp .env.example .env
-
+```
 
 
 
 **4. Start the Application**
 Run the startup script:
-
+```bash
 npm start
+```
 
+<img width="1919" height="980" alt="image" src="https://github.com/user-attachments/assets/df0f51ce-e114-4d64-b45d-bb5b01d6ac48" />
 
-
-
-
-
-<img width="1919" height="980" alt="image" src="https://github.com/user-attachments/assets/17b6a32e-55be-4f8e-92a3-36631e0f6a15" />
